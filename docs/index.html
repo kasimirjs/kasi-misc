@@ -1,0 +1,27 @@
+---
+title: KasimirJS EMBED Demos
+---
+
+
+<h2>Quick Template</h2>
+
+{% raw %}
+<template id="qt1">
+    Hello [[ name.toUpperCase() ]]
+    <span class="[[cls]]">now [[name]]-- running here</span>
+</template>
+
+<div id="target1">
+{% endraw %}
+</div>
+
+<template ka-autostart>
+    <script>
+        let tpl = new KaToolsV1_QuickTemplate('#qt1');
+        tpl.appendTo("#target1", {name: "Matthias", cls: "text-primary"});
+        tpl.appendTo("#target1", {name: "Jan", cls: "text-secondary"});
+
+    </script>
+</template>
+
+

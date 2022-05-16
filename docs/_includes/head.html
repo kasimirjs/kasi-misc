@@ -1,0 +1,38 @@
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <title>{{ page.title | strip_html | escape }} - {{ site.title }}</title>
+    <meta name="description" content="{{ page.description | strip_html | strip_newlines | escape }}">
+    <meta name="keywords" content="{{ page.keywords | strip_newlines | escape }}">
+    <meta itemprop="publisher" content="{{ site.data.info.publisher }}">
+    <meta name="last-modified" content="{{ site.time }}">
+    <meta name="robots" content="index,follow">
+    <link rel="icon" href="/assets/infracamp.png">
+    <link rel=”canonical” href=”{{ site.url }}{{ page.url }}”>
+
+    <meta property="og:url" content="{{ site.url }}{{ page.dir }}">
+    <meta property="og:type" content="{{ page.type | default: 'article' }}">
+    <meta property="og:site_name" content="{{ site.title }}">
+    <meta property="og:title" content="{{ page.title | strip_html | strip_newlines | escape }}">
+    <meta property="og:description" content="{{ page.description  | strip_html | strip_newlines | escape }}">
+
+    <!--meta property="og:image" itemprop="image" content="{{ site.url }}/assets/socal-image.png"-->
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:image:width" content="256">
+    <meta property="og:image:height" content="256">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ page.title | strip_html }}">
+    <meta name="twitter:description" content="{{ page.description  | strip_html | strip_newlines | escape }}">
+    <meta name="twitter:image" content="https://leanea.de/assets/leanea-pic.png">
+
+    {% if page.type != 'website' %}
+    <meta property="article:author" content="{{ site.author }}">
+    <meta property="article:tag" content="{{ page.keywords }}">
+    <meta property="article:section" content="{{ page.section }}">
+    {% endif %}
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <script src="/kasimir-misc.js"></script>
+

@@ -1,0 +1,25 @@
+---
+title: Openhours
+---
+
+
+<script>
+
+    let oh = new KaToolsV1.openhours();
+
+    oh.addVacation(new Date("2022-05-01"), new Date("2022-05-14"));
+
+    oh.addOpenHours(1, "14:00", "18:00")
+    oh.addOpenHours(1, "08:00", "12:00")
+    let assert = KaToolsV1.assert;
+
+    assert.isObject(oh.getVacation(new Date("2022-05-01")))
+    assert.eq(null, oh.getVacation(new Date("2022-05-15")))
+
+    assert.eq("08:00:00", oh.getOpenHoursForDay(new Date("2022-05-16"))[0].from.toString())
+    assert.eq([].length, oh.getOpenHoursForDay(new Date("2022-05-17")).length)
+
+    assert.eq(false, oh.isOpen(new Date("2022-05-14 08:01")))
+    assert.eq(true, oh.isOpen(new Date("2022-05-16 08:01")))
+
+</script>
