@@ -1,6 +1,5 @@
-if (typeof KaToolsV1 === "undefined") {
-    window.KaToolsV1 = class {
-    }
+if (typeof window.KaToolsV1 === "undefined") {
+    window.KaToolsV1 = class {}
 
     /**
      * The last element started by Autostarter

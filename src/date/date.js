@@ -64,6 +64,16 @@ KaToolsV1.date = class {
         return new Date(+curDay + (this.MSEC_PER_DAY * dayOffset));
     }
 
+
+    static offset(dayOffset = 0, date=null) {
+        if (typeof dayOffset !== "number") {
+            console.error("Invalid dayOffset");
+            throw new Error("Invalid dayOffset. Expected number found" + dayOffset);
+        }
+        date = this.mkdate(date);
+        return new Date(+date + (this.MSEC_PER_DAY * dayOffset));
+    }
+
     /**
      * Return midnight of the last day specified in parameter 1 (0: Sunday, 1: Monday)
      *
@@ -75,8 +85,8 @@ KaToolsV1.date = class {
         date = this.mkdate(date);
 
         for(let offset = 0; offset > -8; offset--) {
-            let cur = this.midnight(date, offset);
-            if (cur.getDay() === dayOfWeek)
+            let cur = this.midnight(offset, date);
+            if (cur.getDay() === day)
                 return cur;
         }
     }
@@ -85,12 +95,27 @@ KaToolsV1.date = class {
      * Return HHiiss String
      *
      * @param time
-     * @returns {string|*}
+     * @returns {KaToolsV1.time}
      */
     static mkTime(time) {
         if (time instanceof Date)
             return new KaToolsV1.time(time.getHours(), time.getMinutes(), time.getSeconds());
         return KaToolsV1.time.create(time);
+    }
+
+    /**
+     *
+     * @param time
+     * @param date
+     * @returns {Date}
+     */
+    static setTime(time, date=null) {
+        time = this.mkTime(time);
+        date = this.mkdate(date);
+        date.setHours(time.hour);
+        date.setMinutes(time.minute);
+        date.setSeconds(time.seconds);
+        return date;
     }
 
     /**
@@ -115,6 +140,36 @@ KaToolsV1.date = class {
                 return false; // Before from
         }
         return true;
+    }
+
+    static getCalendar(startDate = null, weeks=8) {
+        startDate = this.mkdate(startDate);
+
+        // Start on last Monday
+
+        startDate = this.dayOfWeek(0, startDate);
+
+        let lastDate = startDate;
+        let weekArray = [];
+        for(let weekIdx = 0; weekIdx < weeks; weekIdx++) {
+            let curWeekArr = {type: "week", days: []};
+            for (let dayIdx = 0; dayIdx < 7; dayIdx++) {
+                let curDate = this.offset(1, lastDate);
+                if (curDate.getMonth() !== lastDate.getMonth()) {
+                    for(let shiftIdx=dayIdx; shiftIdx < 7; shiftIdx++)
+                        curWeekArr.days.push(null);
+                    weekArray.push(curWeekArr);
+                    weekArray.push({type: "month", date: curDate});
+                    curWeekArr = {type: "week", days: []};
+                    for(let shiftIdx=0; shiftIdx < dayIdx; shiftIdx++)
+                        curWeekArr.days.push(null);
+                }
+                curWeekArr.days.push(curDate);
+                lastDate = curDate;
+            }
+            weekArray.push(curWeekArr);
+        }
+        return weekArray;
     }
 
 }

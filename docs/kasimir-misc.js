@@ -1,9 +1,8 @@
 /* KasimirJS MISC - documentation: https://kasimirjs.infracamp.org - Author: Matthias Leuffen <m@tth.es>*/
 
 /* from core/init.js */
-if (typeof KaToolsV1 === "undefined") {
-    window.KaToolsV1 = class {
-    }
+if (typeof window.KaToolsV1 === "undefined") {
+    window.KaToolsV1 = class {}
 
     /**
      * The last element started by Autostarter
@@ -69,6 +68,7 @@ KaToolsV1.openhours = class {
     }
 
     isOpen(date = null) {
+        date = KaToolsV1.date.mkdate(date);
         if (this.getVacation(date) !== null)
             return false;
         let openHours = this._openHours.filter((item) => {
@@ -80,6 +80,32 @@ KaToolsV1.openhours = class {
             return false;
         })
         return openHours.length > 0;
+    }
+
+    getNextOpenDate (date = null) {
+        date = KaToolsV1.date.mkdate(date);
+
+
+        for(let dayOffset = 0; dayOffset < 60; dayOffset++) {
+            let curDate = KaToolsV1.date.offset(dayOffset, date);
+            if (dayOffset > 0)
+                curDate = KaToolsV1.date.midnight(dayOffset, date);
+
+            if (this.getVacation(curDate) !== null)
+                continue;
+
+            let openHours = this.getOpenHoursForDay(curDate);
+            let foundOpenHours = openHours.filter((item) => {
+                let curTime = KaToolsV1.date.mkTime(curDate);
+                if (curTime.toString() < item.from.toString())
+                    return true;
+                return false;
+            });
+            if (foundOpenHours.length === 0)
+                continue;
+            return KaToolsV1.date.setTime(foundOpenHours[0].from, curDate);
+        }
+        return null;
     }
 
     getOpenHoursStruct(date = null) {
@@ -160,6 +186,16 @@ KaToolsV1.date = class {
         return new Date(+curDay + (this.MSEC_PER_DAY * dayOffset));
     }
 
+
+    static offset(dayOffset = 0, date=null) {
+        if (typeof dayOffset !== "number") {
+            console.error("Invalid dayOffset");
+            throw new Error("Invalid dayOffset. Expected number found" + dayOffset);
+        }
+        date = this.mkdate(date);
+        return new Date(+date + (this.MSEC_PER_DAY * dayOffset));
+    }
+
     /**
      * Return midnight of the last day specified in parameter 1 (0: Sunday, 1: Monday)
      *
@@ -171,8 +207,8 @@ KaToolsV1.date = class {
         date = this.mkdate(date);
 
         for(let offset = 0; offset > -8; offset--) {
-            let cur = this.midnight(date, offset);
-            if (cur.getDay() === dayOfWeek)
+            let cur = this.midnight(offset, date);
+            if (cur.getDay() === day)
                 return cur;
         }
     }
@@ -181,12 +217,27 @@ KaToolsV1.date = class {
      * Return HHiiss String
      *
      * @param time
-     * @returns {string|*}
+     * @returns {KaToolsV1.time}
      */
     static mkTime(time) {
         if (time instanceof Date)
             return new KaToolsV1.time(time.getHours(), time.getMinutes(), time.getSeconds());
         return KaToolsV1.time.create(time);
+    }
+
+    /**
+     *
+     * @param time
+     * @param date
+     * @returns {Date}
+     */
+    static setTime(time, date=null) {
+        time = this.mkTime(time);
+        date = this.mkdate(date);
+        date.setHours(time.hour);
+        date.setMinutes(time.minute);
+        date.setSeconds(time.seconds);
+        return date;
     }
 
     /**
@@ -213,6 +264,36 @@ KaToolsV1.date = class {
         return true;
     }
 
+    static getCalendar(startDate = null, weeks=8) {
+        startDate = this.mkdate(startDate);
+
+        // Start on last Monday
+
+        startDate = this.dayOfWeek(0, startDate);
+
+        let lastDate = startDate;
+        let weekArray = [];
+        for(let weekIdx = 0; weekIdx < weeks; weekIdx++) {
+            let curWeekArr = {type: "week", days: []};
+            for (let dayIdx = 0; dayIdx < 7; dayIdx++) {
+                let curDate = this.offset(1, lastDate);
+                if (curDate.getMonth() !== lastDate.getMonth()) {
+                    for(let shiftIdx=dayIdx; shiftIdx < 7; shiftIdx++)
+                        curWeekArr.days.push(null);
+                    weekArray.push(curWeekArr);
+                    weekArray.push({type: "month", date: curDate});
+                    curWeekArr = {type: "week", days: []};
+                    for(let shiftIdx=0; shiftIdx < dayIdx; shiftIdx++)
+                        curWeekArr.days.push(null);
+                }
+                curWeekArr.days.push(curDate);
+                lastDate = curDate;
+            }
+            weekArray.push(curWeekArr);
+        }
+        return weekArray;
+    }
+
 }
 
 /* from date/time.js */
@@ -227,6 +308,8 @@ KaToolsV1.time = class {
 
 
     static create(timeString) {
+        if (timeString instanceof KaToolsV1.time)
+            return timeString;
         let hour, minute, seconds;
         [hour, minute, seconds] = timeString.split(":");
         return new this(hour, minute, seconds);

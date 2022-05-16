@@ -54,6 +54,7 @@ KaToolsV1.openhours = class {
     }
 
     isOpen(date = null) {
+        date = KaToolsV1.date.mkdate(date);
         if (this.getVacation(date) !== null)
             return false;
         let openHours = this._openHours.filter((item) => {
@@ -65,6 +66,32 @@ KaToolsV1.openhours = class {
             return false;
         })
         return openHours.length > 0;
+    }
+
+    getNextOpenDate (date = null) {
+        date = KaToolsV1.date.mkdate(date);
+
+
+        for(let dayOffset = 0; dayOffset < 60; dayOffset++) {
+            let curDate = KaToolsV1.date.offset(dayOffset, date);
+            if (dayOffset > 0)
+                curDate = KaToolsV1.date.midnight(dayOffset, date);
+
+            if (this.getVacation(curDate) !== null)
+                continue;
+
+            let openHours = this.getOpenHoursForDay(curDate);
+            let foundOpenHours = openHours.filter((item) => {
+                let curTime = KaToolsV1.date.mkTime(curDate);
+                if (curTime.toString() < item.from.toString())
+                    return true;
+                return false;
+            });
+            if (foundOpenHours.length === 0)
+                continue;
+            return KaToolsV1.date.setTime(foundOpenHours[0].from, curDate);
+        }
+        return null;
     }
 
     getOpenHoursStruct(date = null) {

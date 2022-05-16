@@ -9,6 +9,8 @@ KaToolsV1.time = class {
 
 
     static create(timeString) {
+        if (timeString instanceof KaToolsV1.time)
+            return timeString;
         let hour, minute, seconds;
         [hour, minute, seconds] = timeString.split(":");
         return new this(hour, minute, seconds);

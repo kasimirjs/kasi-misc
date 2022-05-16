@@ -3,8 +3,9 @@
 /* from core/init.js */
 
 
+console.log("Define!", window.KaToolsV1);
+if (typeof window.KaToolsV1 === "undefined") {
 
-if (typeof KaToolsV1 === "undefined") {
     window.KaToolsV1 = class {
     }
 
@@ -392,6 +393,18 @@ KaToolsV1.elwalk = (elem, fn, recursive=false, includeFirst=false) => {
     }
 }
 
+/* from core/is-constructor.js */
+/**
+ * Returns true if fn in parameter 1 is a contructor
+ *
+ *
+ * @param fn
+ * @returns {boolean}
+ */
+KaToolsV1.is_constructor = (fn) => {
+    return fn.toString().startsWith("class")
+}
+
 /* from tpl/templatify.js */
 
 KaToolsV1._ka_el_idx = 0;
@@ -403,7 +416,10 @@ KaToolsV1._ka_el_idx = 0;
 KaToolsV1.templatify = (elem, returnMode=true) => {
     if (typeof elem === "string")
         elem = KaToolsV1.querySelector(elem);
-
+    if ( ! (elem instanceof Node)) {
+        console.error("[ka-templatify] Parameter 1 is not a html element: ", elem)
+        throw `[ka-templify] Parameter 1 is not a html element: ${elem}`;
+    }
 
     if (returnMode) {
         let returnTpl = document.createElement("template");
@@ -665,6 +681,94 @@ KaToolsV1.provider = new class {
         }
     }
 }();
+
+/* from ce/ce_define.js */
+
+
+KaToolsV1.ce_define = (elementName, controller, template=null, waitEvent=null) => {
+    let ctrlClass = null;
+    if ( KaToolsV1.is_constructor(controller)) {
+        ctrlClass = controller;
+    } else {
+        ctrlClass = class extends KaToolsV1_CustomElement{};
+        ctrlClass.prototype.connected = controller;
+    }
+
+    ctrlClass.__tpl = template;
+    ctrlClass.__waitEvent = waitEvent;
+
+    customElements.define(elementName, ctrlClass);
+
+}
+
+/* from ce/html.js */
+
+
+KaToolsV1.html = (htmlContent) => {
+    let e = document.createElement("template");
+    e.innerHTML = htmlContent;
+    return e;
+}
+
+/* from ce/kaelement.js */
+
+class KaToolsV1_CustomElement extends HTMLElement {
+    static __runMethod = "connected";
+
+    constructor(props) {
+        super(props);
+        /**
+         *
+         * @protected
+         * @type {KaV1Renderer}
+         */
+        this.$tpl = null;
+
+
+        this.__isConnected = false;
+    }
+
+
+    isConnected() {
+        return this.isConnected;
+    }
+
+    async connectedCallback() {
+        let renderer = null;
+        let callback = this.connected;
+        callback.bind(this);
+
+        if (this.constructor.__tpl !== null) {
+            let tpl = KaToolsV1.templatify(this.constructor.__tpl);
+            this.appendChild(tpl);
+            this.$tpl = new KaV1Renderer(tpl);
+        }
+        if (this.constructor.__waitEvent !== null) {
+            let wd = this.constructor.__waitEvent.split("@");
+            let eventName = wd[0];
+            let target = document;
+            if (wd.length === 2) {
+                target = KaToolsV1.querySelector(wd[1]);
+            }
+            target.addEventListener(eventName, async (event) => {
+                callback(... await KaToolsV1.provider.arguments(callback, {
+                    "$this": this,
+                    "$tpl": this.$tpl,
+                    "$event": event
+                }));
+                this.__isConnected = true;
+            })
+            return;
+        }
+
+        callback(... await KaToolsV1.provider.arguments(callback, {
+            "$this": this,
+            "$tpl": this.$tpl
+        }));
+        this.__isConnected = true;
+    }
+
+}
 
 /* from core/autostart.js */
 

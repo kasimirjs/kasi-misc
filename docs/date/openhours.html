@@ -3,13 +3,13 @@ title: Openhours
 ---
 
 
-<script>
+<script type="module">
 
     let oh = new KaToolsV1.openhours();
 
     oh.addVacation(new Date("2022-05-01"), new Date("2022-05-14"));
 
-    oh.addOpenHours(1, "14:00", "18:00")
+    oh.addOpenHours(1, "14:00", "16:00")
     oh.addOpenHours(1, "08:00", "12:00")
     let assert = KaToolsV1.assert;
 
@@ -22,4 +22,35 @@ title: Openhours
     assert.eq(false, oh.isOpen(new Date("2022-05-14 08:01")))
     assert.eq(true, oh.isOpen(new Date("2022-05-16 08:01")))
 
+    assert.eq(14, oh.getNextOpenDate(new Date("2022-05-16 08:01")).getHours());
+
+    KaToolsV1.provider.define("openHours", () => {
+        return oh;
+    })
+
+
+    KaToolsV1.ce_define("leu-open-hours", (openHours, $tpl) => {
+        console.log(openHours);
+        let scope = {
+            is_open: openHours.isOpen(),
+            next_open: openHours.getNextOpenDate(),
+            format: new Intl.DateTimeFormat("de", {
+                timeStyle: "short",
+                dateStyle: "full"
+            })
+        }
+        $tpl.render(scope);
+    }, KaToolsV1.html`
+        <div ka:if="is_open">
+            Unsere Praxis ist geöffnet.
+        </div>
+        <div ka:if="! is_open">
+            Unsere Praxis ist z.Zt. geschlossen. Wir öffnen wieder [[ format.format(next_open) ]].
+        </div>
+    `)
+
 </script>
+
+
+
+<leu-open-hours></leu-open-hours>
