@@ -150,7 +150,7 @@ KaToolsV1.date = class {
         startDate = this.dayOfWeek(0, startDate);
 
         let lastDate = startDate;
-        let weekArray = [];
+        let weekArray = [{type: "month", date: startDate}];
         for(let weekIdx = 0; weekIdx < weeks; weekIdx++) {
             let curWeekArr = {type: "week", days: []};
             for (let dayIdx = 0; dayIdx < 7; dayIdx++) {

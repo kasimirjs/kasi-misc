@@ -53,6 +53,13 @@ KaToolsV1.openhours = class {
         })
     }
 
+    getOpenHoursForDate(date) {
+        if (this.getVacation(date) !== null)
+            return [];
+        return this.getOpenHoursForDay(date);
+    }
+
+
     isOpen(date = null) {
         date = KaToolsV1.date.mkdate(date);
         if (this.getVacation(date) !== null)
